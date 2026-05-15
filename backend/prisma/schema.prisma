@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String    @id @default(uuid())
+  phone       String    @unique
+  displayName String
+  avatarUrl   String?
+  bio         String?
+  status      String    @default("active")
+  lastSeen    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  sentMessages        Message[]            @relation("SentMessages")
+  conversationMembers ConversationMember[]
+  reactions           MessageReaction[]
+  friendsRequested    Friendship[]         @relation("Requester")
+  friendsReceived     Friendship[]         @relation("Addressee")
+  refreshTokens       RefreshToken[]
+  stories             Story[]
+  storyViews          StoryView[]
+  fcmTokens           FcmToken[]
+}
+
+model FcmToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Conversation {
+  id           String   @id @default(uuid())
+  type         String   @default("direct")
+  name         String?
+  avatarUrl    String?
+  lastActivity DateTime @default(now())
+  createdAt    DateTime @default(now())
+
+  members  ConversationMember[]
+  messages Message[]
+}
+
+model ConversationMember {
+  conversationId String
+  userId         String
+  role           String   @default("member")
+  lastReadSeq    BigInt   @default(0)
+  isMuted        Boolean  @default(false)
+  isPinned       Boolean  @default(false)
+  joinedAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id])
+
+  @@id([conversationId, userId])
+}
+
+model Message {
+  id             String    @id @default(uuid())
+  conversationId String
+  senderId       String
+  type           String    @default("text")
+  content        String?
+  mediaUrl       String?
+  mediaSize      Int?
+  mediaMime      String?
+  replyToId      String?
+  isDeleted      Boolean   @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+
+  conversation Conversation      @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User              @relation("SentMessages", fields: [senderId], references: [id])
+  replyTo      Message?          @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies      Message[]         @relation("MessageReplies")
+  reactions    MessageReaction[]
+}
+
+model MessageReaction {
+  messageId String
+  userId    String
+  emoji     String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@id([messageId, userId])
+}
+
+model Friendship {
+  requesterId String
+  addresseeId String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requester User @relation("Requester", fields: [requesterId], references: [id])
+  addressee User @relation("Addressee", fields: [addresseeId], references: [id])
+
+  @@id([requesterId, addresseeId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+model Story {
+  id        String    @id @default(uuid())
+  userId    String
+  mediaUrl  String
+  type      String    @default("image")
+  caption   String?
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  user  User        @relation(fields: [userId], references: [id])
+  views StoryView[]
+}
+
+model StoryView {
+  storyId  String
+  userId   String
+  viewedAt DateTime @default(now())
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@id([storyId, userId])
+}
