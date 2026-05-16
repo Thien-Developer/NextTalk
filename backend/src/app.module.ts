@@ -8,6 +8,7 @@ import { ChatModule } from './chat/chat.module';
 import { UploadModule } from './upload/upload.module';
 import { StoriesModule } from './stories/stories.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { CallsModule } from './calls/calls.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 
@@ -25,6 +26,7 @@ import { RedisModule } from './redis/redis.module';
     UploadModule,
     StoriesModule,
     NotificationsModule,
+    CallsModule,
   ],
   providers: [
     {
