@@ -9,6 +9,7 @@ import { UploadModule } from './upload/upload.module';
 import { StoriesModule } from './stories/stories.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { CallsModule } from './calls/calls.module';
+import { AdminModule } from './admin/admin.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { RedisModule } from './redis/redis.module';
 
@@ -27,6 +28,7 @@ import { RedisModule } from './redis/redis.module';
     StoriesModule,
     NotificationsModule,
     CallsModule,
+    AdminModule,
   ],
   providers: [
     {
