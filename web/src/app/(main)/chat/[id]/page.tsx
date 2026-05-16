@@ -10,6 +10,7 @@ import { useChatStore } from '@/stores/chatStore'
 import { useAuthStore } from '@/stores/authStore'
 import { useSocket } from '@/hooks/useSocket'
 import { useMessages } from '@/hooks/useConversations'
+import { useCall } from '@/contexts/CallContext'
 import { chatApi } from '@/lib/api'
 import toast from 'react-hot-toast'
 import type { Message, Conversation } from '@/types'
@@ -24,6 +25,7 @@ export default function ConversationPage() {
   const { conversations, messages, typingUsers, setActiveConversation, updateMessage } = useChatStore()
   const { sendMessage, sendTyping, sendReadReceipt } = useSocket()
   const { isLoading, loadMore } = useMessages(id)
+  const { initiateCall } = useCall()
 
   const conv = conversations.find((c) => c.id === id)
   const msgs = messages[id] ?? []
@@ -96,12 +98,24 @@ export default function ConversationPage() {
             </p>
           </div>
           <div className="flex items-center gap-1">
-            <button className="w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:text-gold hover:bg-bg-hover transition-colors">
-              <Phone className="w-4 h-4" />
-            </button>
-            <button className="w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:text-gold hover:bg-bg-hover transition-colors">
-              <Video className="w-4 h-4" />
-            </button>
+            {!isGroup && other && (
+              <>
+                <button
+                  onClick={() => initiateCall(other.userId, 'audio', id)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:text-gold hover:bg-bg-hover transition-colors"
+                  title="Gọi thoại"
+                >
+                  <Phone className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => initiateCall(other.userId, 'video', id)}
+                  className="w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:text-gold hover:bg-bg-hover transition-colors"
+                  title="Gọi video"
+                >
+                  <Video className="w-4 h-4" />
+                </button>
+              </>
+            )}
             <button className="w-9 h-9 rounded-xl flex items-center justify-center text-text-muted hover:text-gold hover:bg-bg-hover transition-colors">
               <Info className="w-4 h-4" />
             </button>
