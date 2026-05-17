@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.env
+*.env.local
+
+# Desktop
+desktop/release/
+desktop/dist/
+desktop/node_modules/
+
+# Web build output
+web/out/
+web/.next/

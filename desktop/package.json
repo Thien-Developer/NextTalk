@@ -1,0 +1,34 @@
+{
+  "name": "nexttalk-desktop",
+  "version": "1.0.0",
+  "description": "NextTalk Desktop App — Zalo-like messenger",
+  "main": "dist/main.js",
+  "author": {
+    "name": "Thien-Developer",
+    "email": "nhthin366@gmail.com"
+  },
+  "scripts": {
+    "icons": "node scripts/generate-icons.js",
+    "dev": "tsc && electron .",
+    "build": "node scripts/build.js",
+    "pack:dir": "node scripts/build.js && node scripts/pack-dir.js",
+    "dist:win": "node scripts/build.js && electron-builder --win --publish never",
+    "dist:mac": "node scripts/build.js && electron-builder --mac --publish never",
+    "dist": "node scripts/build.js && electron-builder --publish never"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^25.1.8",
+    "@electron/packager": "^18.3.5",
+    "typescript": "^5.3.3",
+    "pngjs": "^7.0.0",
+    "png-to-ico": "^2.1.8"
+  },
+  "dependencies": {
+    "electron-log": "^5.1.5",
+    "electron-updater": "^6.3.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["electron"]
+  }
+}

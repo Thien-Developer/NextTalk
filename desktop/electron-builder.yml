@@ -1,0 +1,79 @@
+appId: com.nexttalk.desktop
+productName: NextTalk
+copyright: Copyright © 2026 Thien-Developer
+
+directories:
+  buildResources: resources
+  output: release
+
+files:
+  - dist/**/*
+  - package.json
+  - "!node_modules/**/*"
+
+extraResources:
+  - from: "../web/out"
+    to: "web"
+    filter:
+      - "**/*"
+
+win:
+  icon: resources/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+    - target: portable
+      arch: [x64]
+  artifactName: "NextTalk-Setup-${version}.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: NextTalk
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+
+portable:
+  artifactName: "NextTalk-Portable-${version}.${ext}"
+
+mac:
+  icon: resources/icon.icns
+  category: public.app-category.social-networking
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+  artifactName: "NextTalk-${version}-${arch}.${ext}"
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: resources/entitlements.mac.plist
+  entitlementsInherit: resources/entitlements.mac.plist
+
+dmg:
+  title: "NextTalk ${version}"
+  backgroundColor: "#0A0A0A"
+  window:
+    width: 540
+    height: 380
+  contents:
+    - x: 140
+      y: 220
+      type: file
+    - x: 400
+      y: 220
+      type: link
+      path: /Applications
+
+linux:
+  icon: resources/icon.png
+  target: AppImage
+  category: Network
+
+publish:
+  provider: github
+  owner: Thien-Developer
+  repo: NextTalk
+  releaseType: release
