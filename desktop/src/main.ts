@@ -128,7 +128,10 @@ function createWindow(): BrowserWindow {
     minHeight: 600,
     icon: appIcon,
     backgroundColor: '#0A0A0A',
+    // macOS: keep native traffic lights (hiddenInset), extend content under title bar
+    // Windows/Linux: frameless — custom title bar rendered in the web app
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    frame: process.platform !== 'darwin',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

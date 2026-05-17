@@ -53,6 +53,7 @@ export interface Conversation {
   createdAt: string
   members: ConversationMember[]
   lastMessage?: Pick<Message, 'id' | 'type' | 'content' | 'senderId' | 'createdAt'>
+  unreadCount?: number
   myMembership?: {
     lastReadSeq: string
     isMuted: boolean
