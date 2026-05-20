@@ -3,15 +3,12 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
-import Redis from 'ioredis';
 import { JwtService } from '@nestjs/jwt';
 import { ChatService } from './chat.service';
 import { UserService } from '../user/user.service';
@@ -51,9 +48,7 @@ interface SendMessagePayload {
   cors: { origin: '*', credentials: true },
   namespace: '/',
 })
-export class ChatGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
@@ -65,15 +60,6 @@ export class ChatGateway
     private userService: UserService,
     private notificationsService: NotificationsService,
   ) {}
-
-  afterInit(server: Server): void {
-    const pubClient = new Redis({
-      host: process.env.REDIS_HOST || 'localhost',
-      port: parseInt(process.env.REDIS_PORT || '6379'),
-    });
-    const subClient = pubClient.duplicate();
-    server.adapter(createAdapter(pubClient, subClient));
-  }
 
   async handleConnection(client: Socket) {
     try {
