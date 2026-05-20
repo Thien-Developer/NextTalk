@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CallsService } from './calls.service';
 
-interface ReqUser { id: string; phone: string }
+interface ReqUser { id: string }
 
 @ApiTags('calls')
 @ApiBearerAuth()

@@ -1,17 +1,34 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
+import { AuthGuard } from '@nestjs/passport';
+import type { Request, Response } from 'express';
 import { AuthService } from './auth.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 interface AuthUser {
   id: string;
-  phone: string;
+  email: string;
   refreshToken: string;
+}
+
+interface GoogleUser {
+  id: string;
+  email: string | null;
 }
 
 @ApiTags('auth')
@@ -19,20 +36,28 @@ interface AuthUser {
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  @Post('send-otp')
-  @ApiOperation({ summary: 'Send OTP to phone number' })
-  @ApiResponse({ status: 201, description: 'OTP sent successfully' })
-  @ApiResponse({ status: 429, description: 'Too many requests' })
-  sendOtp(@Body() dto: SendOtpDto) {
-    return this.authService.sendOtp(dto);
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Redirect to Google OAuth login' })
+  googleAuth() {
+    // Passport handles the redirect to Google
   }
 
-  @Post('verify-otp')
-  @ApiOperation({ summary: 'Verify OTP and get tokens' })
-  @ApiResponse({ status: 201, description: 'Returns accessToken and refreshToken' })
-  verifyOtp(@Body() dto: VerifyOtpDto) {
-    return this.authService.verifyOtp(dto);
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  @ApiOperation({ summary: 'Google OAuth callback — redirects to frontend with JWT tokens' })
+  @ApiResponse({ status: 302, description: 'Redirects to FRONTEND_URL/auth/callback?accessToken=...&refreshToken=...' })
+  async googleAuthCallback(
+    @Req() req: Request,
+    @Res() res: Response,
+  ): Promise<void> {
+    const user = req.user as GoogleUser;
+    const tokens = await this.authService.googleLogin(user);
+    const frontendUrl =
+      process.env.FRONTEND_URL || 'http://localhost:3001';
+    res.redirect(
+      `${frontendUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
+    );
   }
 
   @ApiBearerAuth()
@@ -40,7 +65,7 @@ export class AuthController {
   @Post('refresh')
   @ApiOperation({ summary: 'Refresh access token using refresh token' })
   refresh(@CurrentUser() user: AuthUser) {
-    return this.authService.refreshTokens(user.id, user.phone, user.refreshToken);
+    return this.authService.refreshTokens(user.id, user.email, user.refreshToken);
   }
 
   @Post('logout')

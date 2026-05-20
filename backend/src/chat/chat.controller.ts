@@ -28,7 +28,6 @@ import { ChatGateway } from './chat.gateway';
 
 interface ReqUser {
   id: string;
-  phone: string;
 }
 
 @ApiTags('chat')

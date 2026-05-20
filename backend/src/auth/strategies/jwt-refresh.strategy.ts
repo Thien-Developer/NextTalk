@@ -5,7 +5,7 @@ import { Request } from 'express';
 
 interface JwtPayload {
   sub: string;
-  phone: string;
+  email: string;
 }
 
 @Injectable()
@@ -20,6 +20,6 @@ export class JwtRefreshStrategy extends PassportStrategy(Strategy, 'jwt-refresh'
 
   validate(req: Request, payload: JwtPayload) {
     const refreshToken = req.body?.refreshToken as string;
-    return { id: payload.sub, phone: payload.phone, refreshToken };
+    return { id: payload.sub, email: payload.email, refreshToken };
   }
 }

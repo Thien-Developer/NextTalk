@@ -45,8 +45,6 @@ export default api
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
 export const authApi = {
-  sendOtp: (phone: string) => api.post('/auth/send-otp', { phone }),
-  verifyOtp: (phone: string, otp: string) => api.post('/auth/verify-otp', { phone, otp }),
   logout: (refreshToken: string) => api.post('/auth/logout', { refreshToken }),
 }
 

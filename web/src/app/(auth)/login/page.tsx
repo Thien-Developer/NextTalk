@@ -1,52 +1,13 @@
 'use client'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import toast from 'react-hot-toast'
-import { Phone, ArrowRight, Shield } from 'lucide-react'
-import { authApi, userApi } from '@/lib/api'
-import { useAuthStore } from '@/stores/authStore'
-
-type Step = 'phone' | 'otp'
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { setTokens, setUser } = useAuthStore()
-  const [step, setStep] = useState<Step>('phone')
-  const [phone, setPhone] = useState('')
-  const [otp, setOtp] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const handleSendOtp = async () => {
-    if (!phone.match(/^(\+84|0)[0-9]{9}$/)) {
-      toast.error('Số điện thoại không hợp lệ')
-      return
-    }
-    setLoading(true)
-    try {
-      await authApi.sendOtp(phone)
-      toast.success('OTP đã được gửi')
-      setStep('otp')
-    } catch (e: unknown) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Gửi OTP thất bại')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleVerifyOtp = async () => {
-    if (otp.length !== 6) { toast.error('OTP phải có 6 chữ số'); return }
-    setLoading(true)
-    try {
-      const { data } = await authApi.verifyOtp(phone, otp)
-      setTokens(data.accessToken, data.refreshToken)
-      const { data: user } = await userApi.getProfile()
-      setUser(user)
-      router.replace('/chat')
-    } catch (e: unknown) {
-      toast.error((e as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'OTP không đúng')
-    } finally {
-      setLoading(false)
-    }
+  const handleGoogleLogin = () => {
+    const base =
+      (process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3000/api').replace(
+        /\/api$/,
+        '',
+      )
+    window.location.href = `${base}/api/auth/google`
   }
 
   return (
@@ -61,57 +22,24 @@ export default function LoginPage() {
           <p className="text-text-secondary text-sm mt-1">Nhắn tin · Gọi video · Chia sẻ</p>
         </div>
 
-        <div className="bg-bg-secondary border border-border rounded-2xl p-6 space-y-5">
-          {step === 'phone' ? (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Số điện thoại</label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleSendOtp()}
-                    placeholder="0912 345 678"
-                    className="input-field pl-10"
-                    autoFocus
-                  />
-                </div>
-              </div>
-              <button onClick={handleSendOtp} disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2">
-                {loading ? <span className="animate-spin w-4 h-4 border-2 border-bg-primary/40 border-t-bg-primary rounded-full" /> : <>Gửi mã OTP <ArrowRight className="w-4 h-4" /></>}
-              </button>
-            </>
-          ) : (
-            <>
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <button onClick={() => setStep('phone')} className="text-text-muted hover:text-text-primary transition-colors text-sm">← {phone}</button>
-                </div>
-                <label className="block text-sm font-medium text-text-secondary mb-2">Nhập mã OTP</label>
-                <div className="relative">
-                  <Shield className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    value={otp}
-                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                    onKeyDown={(e) => e.key === 'Enter' && handleVerifyOtp()}
-                    placeholder="6 chữ số"
-                    className="input-field pl-10 text-center text-xl tracking-[0.5em] font-mono"
-                    autoFocus
-                  />
-                </div>
-                <p className="text-text-muted text-xs mt-2 text-center">Mã OTP có hiệu lực trong 2 phút</p>
-              </div>
-              <button onClick={handleVerifyOtp} disabled={loading || otp.length !== 6} className="btn-primary w-full flex items-center justify-center gap-2">
-                {loading ? <span className="animate-spin w-4 h-4 border-2 border-bg-primary/40 border-t-bg-primary rounded-full" /> : 'Xác nhận'}
-              </button>
-              <button onClick={handleSendOtp} disabled={loading} className="btn-ghost w-full text-sm">Gửi lại OTP</button>
-            </>
-          )}
+        <div className="bg-bg-secondary border border-border rounded-2xl p-6 space-y-4">
+          <p className="text-center text-text-secondary text-sm">
+            Đăng nhập để tiếp tục
+          </p>
+
+          <button
+            onClick={handleGoogleLogin}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white text-gray-700 font-semibold rounded-lg hover:bg-gray-50 active:bg-gray-100 transition-colors duration-150 border border-gray-200"
+          >
+            {/* Google logo */}
+            <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+              <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+              <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+              <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+              <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Đăng nhập bằng Google
+          </button>
         </div>
       </div>
     </div>

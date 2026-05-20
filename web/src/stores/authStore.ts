@@ -3,9 +3,11 @@ import { persist } from 'zustand/middleware'
 import type { User } from '@/types'
 
 interface AuthState {
+  _hasHydrated: boolean
   accessToken: string | null
   refreshToken: string | null
   user: User | null
+  setHasHydrated: () => void
   setTokens: (accessToken: string, refreshToken: string) => void
   setUser: (user: User) => void
   logout: () => void
@@ -15,9 +17,11 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
       accessToken: null,
       refreshToken: null,
       user: null,
+      setHasHydrated: () => set({ _hasHydrated: true }),
       setTokens: (accessToken, refreshToken) => {
         localStorage.setItem('accessToken', accessToken)
         localStorage.setItem('refreshToken', refreshToken)
@@ -34,6 +38,9 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'nexttalk-auth',
       partialize: (s) => ({ accessToken: s.accessToken, refreshToken: s.refreshToken, user: s.user }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated()
+      },
     },
   ),
 )

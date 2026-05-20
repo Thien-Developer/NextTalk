@@ -1,58 +1,56 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../prisma/prisma.service';
-import { RedisService } from '../redis/redis.service';
-import { SpeedSmsService } from '../common/sms/speedsms.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+
+interface GoogleUserData {
+  googleId: string;
+  email: string;
+  displayName: string;
+  avatarUrl?: string;
+}
 
 @Injectable()
 export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
-    private redis: RedisService,
-    private sms: SpeedSmsService,
   ) {}
 
-  async sendOtp(dto: SendOtpDto) {
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    await this.redis.set(`otp:${dto.phone}`, otp, 120);
-
-    const sent = await this.sms.sendOtp(dto.phone, otp);
-    if (!sent) throw new InternalServerErrorException('Failed to send OTP');
-
-    return { message: 'OTP sent successfully', phone: dto.phone };
-  }
-
-  async verifyOtp(dto: VerifyOtpDto) {
-    const storedOtp = await this.redis.get(`otp:${dto.phone}`);
-    if (!storedOtp) {
-      throw new BadRequestException('OTP expired or not found');
-    }
-    if (storedOtp !== dto.otp) {
-      throw new UnauthorizedException('Invalid OTP');
-    }
-    await this.redis.del(`otp:${dto.phone}`);
-
-    let user = await this.prisma.user.findUnique({
-      where: { phone: dto.phone },
+  async findOrCreateGoogleUser(data: GoogleUserData) {
+    let user = await this.prisma.user.findFirst({
+      where: {
+        OR: [{ googleId: data.googleId }, { email: data.email }],
+      },
     });
+
     if (!user) {
       user = await this.prisma.user.create({
-        data: { phone: dto.phone, displayName: dto.phone },
+        data: {
+          googleId: data.googleId,
+          email: data.email,
+          displayName: data.displayName,
+          avatarUrl: data.avatarUrl,
+        },
+      });
+    } else if (!user.googleId) {
+      // Link Google account to existing email user
+      user = await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId: data.googleId,
+          avatarUrl: user.avatarUrl ?? data.avatarUrl,
+        },
       });
     }
 
-    return this.generateTokenPair(user.id, user.phone);
+    return user;
   }
 
-  async refreshTokens(userId: string, phone: string, refreshToken: string) {
+  async googleLogin(user: { id: string; email: string | null }) {
+    return this.generateTokenPair(user.id, user.email ?? '');
+  }
+
+  async refreshTokens(userId: string, email: string, refreshToken: string) {
     const stored = await this.prisma.refreshToken.findFirst({
       where: {
         userId,
@@ -65,7 +63,7 @@ export class AuthService {
     }
 
     await this.prisma.refreshToken.delete({ where: { id: stored.id } });
-    return this.generateTokenPair(userId, phone);
+    return this.generateTokenPair(userId, email);
   }
 
   async logout(refreshToken: string) {
@@ -75,8 +73,8 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  private async generateTokenPair(userId: string, phone: string) {
-    const payload = { sub: userId, phone };
+  private async generateTokenPair(userId: string, email: string) {
+    const payload = { sub: userId, email };
 
     const accessToken = this.jwt.sign(payload, {
       secret: process.env.JWT_SECRET,

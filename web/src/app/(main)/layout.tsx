@@ -18,19 +18,26 @@ function SocketInitializer() {
 
 function LayoutInner({ children }: { children: React.ReactNode }) {
   const router = useRouter()
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated, _hasHydrated } = useAuthStore()
 
   useEffect(() => {
-    if (!isAuthenticated()) router.replace('/login')
-  }, [isAuthenticated, router])
+    if (_hasHydrated && !isAuthenticated()) router.replace('/login')
+  }, [_hasHydrated, isAuthenticated, router])
+
+  // Show loading skeleton while Zustand rehydrates from localStorage
+  if (!_hasHydrated) {
+    return (
+      <div className="h-screen bg-bg-primary flex items-center justify-center">
+        <div className="w-7 h-7 border-2 border-gold/20 border-t-gold rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   if (!isAuthenticated()) return null
 
   return (
     <div className="h-screen flex flex-col bg-bg-primary overflow-hidden">
-      {/* Custom title bar for Electron on Windows */}
       <TitleBar />
-
       <div className="flex flex-1 min-h-0">
         <SocketInitializer />
         <IncomingCallModal />

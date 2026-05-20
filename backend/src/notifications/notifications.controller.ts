@@ -11,7 +11,7 @@ class RegisterTokenDto {
   token: string;
 }
 
-interface ReqUser { id: string; phone: string }
+interface ReqUser { id: string }
 
 @ApiTags('notifications')
 @ApiBearerAuth()

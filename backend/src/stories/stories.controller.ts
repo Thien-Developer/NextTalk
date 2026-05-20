@@ -14,7 +14,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 interface ReqUser {
   id: string;
-  phone: string;
 }
 
 @UseGuards(JwtAuthGuard)
