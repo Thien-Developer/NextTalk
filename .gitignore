@@ -11,3 +11,7 @@ desktop/node_modules/
 # Web build output
 web/out/
 web/.next/
+web/tsconfig.tsbuildinfo
+
+# Claude Code local settings
+.claude/
