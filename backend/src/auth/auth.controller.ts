@@ -56,7 +56,7 @@ export class AuthController {
     const frontendUrl =
       process.env.FRONTEND_URL || 'http://localhost:3001';
     res.redirect(
-      `${frontendUrl}/auth/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
+      `${frontendUrl}/callback?accessToken=${tokens.accessToken}&refreshToken=${tokens.refreshToken}`,
     );
   }
 
