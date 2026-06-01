@@ -34,8 +34,8 @@ export class UserController {
   }
 
   @Get('search')
-  search(@Query('phone') phone: string, @CurrentUser() user: ReqUser) {
-    return this.userService.searchByPhone(phone, user.id);
+  search(@Query('q') q: string, @CurrentUser() user: ReqUser) {
+    return this.userService.searchUsers(q, user.id);
   }
 
   @Get('friends')

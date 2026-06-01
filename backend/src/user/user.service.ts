@@ -10,6 +10,7 @@ const PUBLIC_USER_SELECT = {
   id: true,
   displayName: true,
   avatarUrl: true,
+  email: true,
   phone: true,
   bio: true,
   lastSeen: true,
@@ -44,10 +45,13 @@ export class UserService {
     });
   }
 
-  async searchByPhone(phone: string, currentUserId: string) {
+  async searchUsers(q: string, currentUserId: string) {
     return this.prisma.user.findMany({
       where: {
-        phone: { contains: phone },
+        OR: [
+          { email: { contains: q, mode: 'insensitive' } },
+          { displayName: { contains: q, mode: 'insensitive' } },
+        ],
         id: { not: currentUserId },
       },
       select: PUBLIC_USER_SELECT,

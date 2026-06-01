@@ -55,7 +55,7 @@ export const userApi = {
   getProfile: () => api.get('/api/users/me'),
   updateProfile: (data: { displayName?: string; bio?: string; avatarUrl?: string }) =>
     api.patch('/api/users/me', data),
-  searchByPhone: (phone: string) => api.get('/api/users/search', { params: { phone } }),
+  searchUsers: (q: string) => api.get('/api/users/search', { params: { q } }),
   getUserById: (id: string) => api.get(`/api/users/${id}`),
   getFriends: () => api.get('/api/users/friends'),
   getFriendRequests: () => api.get('/api/users/friend-requests'),
