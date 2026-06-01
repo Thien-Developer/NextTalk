@@ -12,7 +12,13 @@ async function bootstrap() {
   app.useWebSocketAdapter(redisIoAdapter);
 
   app.enableCors({
-    origin: ['http://localhost:3001', 'http://localhost:8081', 'http://localhost:19006'],
+    origin: [
+      'http://localhost:3001',
+      'http://localhost:8081',
+      'http://localhost:19006',
+      'http://44.200.84.42:3001',
+      'https://clarity-single-untaxed.ngrok-free.dev',
+    ],
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
