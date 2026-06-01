@@ -11,14 +11,9 @@ async function bootstrap() {
   await redisIoAdapter.connectToRedis();
   app.useWebSocketAdapter(redisIoAdapter);
 
+  const corsOrigin = process.env.CORS_ORIGIN;
   app.enableCors({
-    origin: [
-      'http://localhost:3001',
-      'http://localhost:8081',
-      'http://localhost:19006',
-      'http://44.200.84.42:3001',
-      'https://clarity-single-untaxed.ngrok-free.dev',
-    ],
+    origin: corsOrigin ? corsOrigin.split(',').map((o) => o.trim()) : true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
