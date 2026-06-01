@@ -26,8 +26,8 @@ export default function ContactsPage() {
   const sendReq = useMutation({
     mutationFn: (id: string) => userApi.sendFriendRequest(id),
     onSuccess: () => { toast.success('Đã gửi lời mời kết bạn') },
-    onError: (err: any) => {
-      const msg = err?.response?.data?.message
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       toast.error(msg === 'Friend request already exists' ? 'Đã gửi lời mời trước đó' : 'Không thể gửi lời mời')
     },
   })
